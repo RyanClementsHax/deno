@@ -316,7 +316,7 @@ fn resolve_fmt_options(
   options
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct TestOptions {
   pub files: FilePatterns,
   pub doc: bool,
@@ -1452,14 +1452,15 @@ impl CliOptions {
   }
 
   pub fn watch_paths(&self) -> Vec<PathBuf> {
-    let mut paths = if let DenoSubcommand::Run(RunFlags {
-      watch: Some(WatchFlagsWithPaths { paths, .. }),
-      ..
-    }) = &self.flags.subcommand
-    {
-      paths.clone()
-    } else {
-      Vec::with_capacity(2)
+    let mut paths = match &self.flags.subcommand {
+      DenoSubcommand::Run(RunFlags {
+        watch: Some(WatchFlagsWithPaths { paths, .. }),
+        ..
+      }) | DenoSubcommand::Test(TestFlags {
+        watch: Some(WatchFlagsWithPaths { paths, .. }),
+        ..
+      })  => paths.clone(),
+      _ => Vec::with_capacity(2)
     };
     if let Ok(Some(import_map_path)) = self
       .resolve_import_map_specifier()

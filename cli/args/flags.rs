@@ -304,7 +304,7 @@ pub struct TestFlags {
   pub shuffle: Option<u64>,
   pub concurrent_jobs: Option<NonZeroUsize>,
   pub trace_ops: bool,
-  pub watch: Option<WatchFlags>,
+  pub watch: Option<WatchFlagsWithPaths>,
   pub reporter: TestReporterConfig,
   pub junit_path: Option<String>,
 }
@@ -2220,7 +2220,7 @@ Directory arguments are expanded to all contained files matching the glob
         .value_hint(ValueHint::AnyPath),
     )
     .arg(
-      watch_arg(false)
+      watch_arg(true)
         .conflicts_with("no-run")
         .conflicts_with("coverage"),
     )
@@ -3761,7 +3761,7 @@ fn test_parse(flags: &mut Flags, matches: &mut ArgMatches) {
     allow_none,
     concurrent_jobs,
     trace_ops,
-    watch: watch_arg_parse(matches),
+    watch: watch_arg_parse_with_paths(matches),
     reporter,
     junit_path,
   });
@@ -4172,13 +4172,15 @@ fn watch_arg_parse_with_paths(
     });
   }
 
-  matches
-    .remove_many::<PathBuf>("hmr")
-    .map(|paths| WatchFlagsWithPaths {
+  if let Ok(maybe_paths) = matches.try_remove_many::<PathBuf>("hmr") {
+    maybe_paths.map(|paths| WatchFlagsWithPaths {
       paths: paths.collect(),
       hmr: true,
       no_clear_screen: matches.get_flag("no-clear-screen"),
     })
+  } else {
+    None
+  }
 }
 
 // TODO(ry) move this to utility module and add test.

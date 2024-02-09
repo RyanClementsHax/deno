@@ -160,6 +160,8 @@ pub struct WatcherCommunicator {
 
 impl WatcherCommunicator {
   pub fn watch_paths(&self, paths: Vec<PathBuf>) -> Result<(), AnyError> {
+    println!("watching paths: {:?}", paths);
+    println!("Custom backtrace: {}", std::backtrace::Backtrace::force_capture());
     self.paths_to_watch_tx.send(paths).map_err(AnyError::from)
   }
 

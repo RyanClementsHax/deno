@@ -1294,6 +1294,7 @@ pub async fn run_tests_with_watch(
         let test_options = cli_options.resolve_test_options(test_flags)?;
 
         let _ = watcher_communicator.watch_paths(cli_options.watch_paths());
+        println!("{:#?}", test_options);
         if let Some(set) = &test_options.files.include {
           let watch_paths = set.base_paths();
           if !watch_paths.is_empty() {
